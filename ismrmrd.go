@@ -57,9 +57,9 @@ type AcquisitionHeader struct {
 }
 
 type Acquisition struct {
-	head AcquisitionHeader
-	traj []float32
-	data []complex64
+	Head AcquisitionHeader
+	Traj []float32
+	Data []float32
 }
 
 type ImageHeader struct {

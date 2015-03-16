@@ -1,6 +1,7 @@
 package ismrmrd
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -85,7 +86,7 @@ var testXML string
 var testHeader *IsmrmrdHeader
 
 func TestMain(m *testing.M) {
-	f, err := os.Open("data.xml")
+	f, err := os.Open("test_data.xml")
 	if err != nil {
 		panic(err)
 	}
@@ -221,7 +222,6 @@ func TestSerialize(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	print(string(b))
 
 	// The test file contains a trailing newline :/
 	if string(b) != testXML[:len(testXML)-1] {
@@ -243,8 +243,6 @@ func TestDeserialize(t *testing.T) {
 
 func equal(h1, h2 *IsmrmrdHeader) bool {
 	if h1.Version != h2.Version {
-		print(h1.Version)
-		print(h2.Version)
 		print("Bad version")
 		return false
 	} else if *h1.SubjectInformation != *h2.SubjectInformation {
@@ -259,16 +257,16 @@ func equal(h1, h2 *IsmrmrdHeader) bool {
 	} else if h1.ExperimentalConditions != h2.ExperimentalConditions {
 		print("Bad ExperimentalConditions")
 		return false
-	} else if !same_meas_info(h1.MeasurementInformation, h2.MeasurementInformation) {
+	} else if !sameMeasurementInfo(h1.MeasurementInformation, h2.MeasurementInformation) {
 		print("Bad MeasurementInformation")
 		return false
-	} else if !same_encoding(&h1.Encoding, &h2.Encoding) {
+	} else if !sameEncodingSlice(h1.Encoding, h2.Encoding) {
 		print("Bad Encoding")
 		return false
-	} else if !same_seq_params(h1.SequenceParameters, h2.SequenceParameters) {
+	} else if !sameSequenceParameters(h1.SequenceParameters, h2.SequenceParameters) {
 		print("Bad SequenceParameters")
 		return false
-	} else if !same_user_params(h1.UserParameters, h2.UserParameters) {
+	} else if !sameUserParameters(h1.UserParameters, h2.UserParameters) {
 		print("Bad UserParameters")
 		return false
 	}
@@ -276,7 +274,7 @@ func equal(h1, h2 *IsmrmrdHeader) bool {
 	return true
 }
 
-func same_meas_info(m1, m2 *MeasurementInformation) bool {
+func sameMeasurementInfo(m1, m2 *MeasurementInformation) bool {
 	if len(m1.MeasurementDependency) != len(m2.MeasurementDependency) {
 		return false
 	}
@@ -308,20 +306,144 @@ func same_meas_info(m1, m2 *MeasurementInformation) bool {
 		m1.FrameOfReferenceUID == m2.FrameOfReferenceUID
 }
 
-func same_encoding(e1, e2 *[]Encoding) bool {
-	if len(*e1) != len(*e2) {
+func sameEncodingSlice(e1, e2 []Encoding) bool {
+	if len(e1) != len(e2) {
 		return false
 	}
 
-	for i := 0; i < len(*e1); i++ {
-		if (*e1)[i] != (*e2)[i] {
+	for i := 0; i < len(e1); i++ {
+		if !sameEncoding(e1[i], e2[i]) {
+			fmt.Printf("%+v\n", e1[i])
+			fmt.Printf("%+v\n", e2[i])
 			return false
 		}
 	}
 	return true
 }
 
-func same_seq_params(p1, p2 *SequenceParameters) bool {
+func sameEncoding(e1, e2 Encoding) bool {
+	if e1.EncodedSpace != e2.EncodedSpace {
+		return false
+	}
+	if e1.ReconSpace != e2.ReconSpace {
+		return false
+	}
+	if !sameEncodingLimits(e1.EncodingLimits, e2.EncodingLimits) {
+		return false
+	}
+	if e1.Trajectory != e2.Trajectory {
+		return false
+	}
+	if !sameTrajectoryDescription(e1.TrajectoryDescription, e2.TrajectoryDescription) {
+		return false
+	}
+	if !sameParallelImaging(e1.ParallelImaging, e2.ParallelImaging) {
+		return false
+	}
+	return true
+}
+
+func sameEncodingLimits(e1, e2 EncodingLimits) bool {
+	if !sameLimit(e1.KSpaceEncodingStep0, e2.KSpaceEncodingStep0) {
+		return false
+	}
+	if !sameLimit(e1.KSpaceEncodingStep1, e2.KSpaceEncodingStep1) {
+		return false
+	}
+	if !sameLimit(e1.KSpaceEncodingStep2, e2.KSpaceEncodingStep2) {
+		return false
+	}
+	if !sameLimit(e1.Average, e2.Average) {
+		return false
+	}
+	if !sameLimit(e1.Slice, e2.Slice) {
+		return false
+	}
+	if !sameLimit(e1.Contrast, e2.Contrast) {
+		return false
+	}
+	if !sameLimit(e1.Phase, e2.Phase) {
+		return false
+	}
+	if !sameLimit(e1.Repetition, e2.Repetition) {
+		return false
+	}
+	if !sameLimit(e1.Set, e2.Set) {
+		return false
+	}
+	if !sameLimit(e1.Segment, e2.Segment) {
+		return false
+	}
+	return true
+}
+
+func sameLimit(l1, l2 *Limit) bool {
+	if l1 == nil && l2 == nil {
+		return true
+	}
+	if l1 == nil || l2 == nil {
+		return false
+	}
+	if *l2 != *l2 {
+		return false
+	}
+	return true
+}
+
+func sameTrajectoryDescription(t1, t2 *TrajectoryDescription) bool {
+	if t1 == nil && t2 == nil {
+		return true
+	}
+	if t1 == nil || t2 == nil {
+		return false
+	}
+
+	if t1.Name != t2.Name {
+		return false
+	}
+	if len(t1.UserParameterLong) != len(t2.UserParameterLong) {
+		return false
+	}
+	for i, l := range t1.UserParameterLong {
+		if l != t2.UserParameterLong[i] {
+			return false
+		}
+	}
+	if len(t1.UserParameterDouble) != len(t2.UserParameterDouble) {
+		return false
+	}
+	for i, d := range t1.UserParameterDouble {
+		if d != t2.UserParameterDouble[i] {
+			return false
+		}
+	}
+	if t1.Comment != t2.Comment {
+		return false
+	}
+	return true
+}
+
+func sameParallelImaging(p1, p2 *ParallelImaging) bool {
+	if p1 == nil && p2 == nil {
+		return true
+	}
+	if p1 == nil || p2 == nil {
+		return false
+	}
+
+	if p1.AccelerationFactor != p2.AccelerationFactor {
+		return false
+	}
+	if p1.CalibrationMode != p2.CalibrationMode {
+		return false
+	}
+	if p1.InterleavingDimension != p2.InterleavingDimension {
+		return false
+	}
+	return true
+}
+
+func sameSequenceParameters(p1, p2 *SequenceParameters) bool {
 	if !(len(p1.TR) == len(p2.TR) && len(p1.TE) == len(p2.TE) && len(p1.TI) == len(p2.TI) && len(p1.FlipAngleDeg) == len(p2.FlipAngleDeg)) {
 		return false
 	}
@@ -353,6 +475,7 @@ func same_seq_params(p1, p2 *SequenceParameters) bool {
 	return true
 }
 
-func same_user_params(p1, p2 *UserParameters) bool {
+func sameUserParameters(p1, p2 *UserParameters) bool {
+
 	return true
 }

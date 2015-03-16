@@ -2,18 +2,31 @@ package ismrmrd
 
 const (
 	ISMRMRD_VERSION_MAJOR = 1
-	ISMRMRD_VERSION_MINOR = 1
-	ISMRMRD_VERSION_PATCH = 0
+	ISMRMRD_VERSION_MINOR = 2
+	ISMRMRD_VERSION_PATCH = 2
 
-	ISMRMRD_POSITION_LENGTH  = 3
-	ISMRMRD_DIRECTION_LENGTH = 3
 	ISMRMRD_USER_INTS        = 8
 	ISMRMRD_USER_FLOATS      = 8
 	ISMRMRD_PHYS_STAMPS      = 3
 	ISMRMRD_CHANNEL_MASKS    = 16
+	ISMRMRD_NDARRAY_MAXDIM   = 7
+	ISMRMRD_POSITION_LENGTH  = 3
+	ISMRMRD_DIRECTION_LENGTH = 3
 
-	ACQ_FIRST_IN_SLICE = 1 << 6
-	ACQ_LAST_IN_SLICE  = 1 << 7
+	ISMRMRD_USHORT   = 1
+	ISMRMRD_SHORT    = 2
+	ISMRMRD_UINT     = 3
+	ISMRMRD_INT      = 4
+	ISMRMRD_FLOAT    = 5
+	ISMRMRD_DOUBLE   = 6
+	ISMRMRD_CXFLOAT  = 7
+	ISMRMRD_CXDOUBLE = 8
+
+	ISMRMRD_IMTYPE_MAGNITUDE = 1
+	ISMRMRD_IMTYPE_PHASE     = 2
+	ISMRMRD_IMTYPE_REAL      = 3
+	ISMRMRD_IMTYPE_IMAG      = 4
+	ISMRMRD_IMTYPE_COMPLEX   = 5
 )
 
 type EncodingCounters struct {
@@ -32,7 +45,7 @@ type EncodingCounters struct {
 type AcquisitionHeader struct {
 	Version              uint16
 	Flags                uint64
-	Measurement_uid      uint32
+	MeasurementUID       uint32
 	ScanCounter          uint32
 	AcquisitionTimeStamp uint32
 	PhysiologyTimeStamp  [ISMRMRD_PHYS_STAMPS]uint32
@@ -59,13 +72,14 @@ type AcquisitionHeader struct {
 type Acquisition struct {
 	Head AcquisitionHeader
 	Traj []float32
-	Data []float32
+	Data []complex64
 }
 
 type ImageHeader struct {
 	Version              uint16
+	DataType             uint16
 	Flags                uint64
-	MeasurementUid       uint32
+	MeasurementUID       uint32
 	MatrixSize           [3]uint16
 	FieldOfView          [3]float32
 	Channels             uint16
@@ -82,10 +96,10 @@ type ImageHeader struct {
 	Set                  uint16
 	AcquisitionTimeStamp uint32
 	PhysiologyTimeStamp  [ISMRMRD_PHYS_STAMPS]uint32
-	ImageDataype         uint16
 	ImageType            uint16
 	ImageIndex           uint16
 	ImageSeriesIndex     uint16
 	UserInt              [ISMRMRD_USER_INTS]int32
 	UserFloat            [ISMRMRD_USER_FLOATS]float32
+	AttributeStringLen   uint32
 }

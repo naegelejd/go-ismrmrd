@@ -83,7 +83,6 @@
       </slice>
     </encodingLimits>
     <trajectory>cartesian</trajectory>
-    <echoTrainLength>0</echoTrainLength>
   </encoding>
   <sequenceParameters>
     <TR>150</TR>

@@ -83,7 +83,6 @@ type Encoding struct {
 	Trajectory            string                 `xml:"trajectory"`
 	TrajectoryDescription *TrajectoryDescription `xml:"trajectoryDescription"`
 	ParallelImaging       *ParallelImaging       `xml:"parallelImaging"`
-	EchoTrainLength       int64                  `xml:"echoTrainLength"`
 }
 
 type EncodingSpace struct {

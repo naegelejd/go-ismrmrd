@@ -30,8 +30,8 @@ const (
 )
 
 type EncodingCounters struct {
-	KspaceEncodeStep1 uint16
-	KspaceEncodeStep2 uint16
+	KSpaceEncodeStep1 uint16
+	KSpaceEncodeStep2 uint16
 	Average           uint16
 	Slice             uint16
 	Contrast          uint16

@@ -104,8 +104,7 @@ func (d *Dataset) WriteXMLHeader(header string) error {
 	}
 	defer dataset.Close()
 
-	wrapper := make([]string, 1)
-	wrapper[0] = header
+	wrapper := []string{header}
 	if err := dataset.Write(&wrapper); err != nil {
 		return err
 	}
